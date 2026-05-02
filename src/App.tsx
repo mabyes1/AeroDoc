@@ -27,6 +27,8 @@ interface FileNode {
   kind: 'file' | 'directory';
   fileType?: FileType;
   children?: FileNode[];
+  isLoaded?: boolean;
+  isLoading?: boolean;
 }
 
 interface CurrentFile {
@@ -242,8 +244,7 @@ export default function App() {
         const childPath = d + '/' + entry.name;
 
         if (entry.isDirectory) {
-          const children = await scanDir(childPath);
-          nodes.push({ name: entry.name, path: childPath, kind: 'directory', children });
+          nodes.push({ name: entry.name, path: childPath, kind: 'directory', children: [], isLoaded: false });
         } else if (entry.isFile) {
           const fileType = getFileType(entry.name);
           if (fileType) nodes.push({ name: entry.name, path: childPath, kind: 'file', fileType });
@@ -257,6 +258,27 @@ export default function App() {
     } catch {
       return [];
     }
+  };
+
+  const updateTreeNode = (nodes: FileNode[], path: string, updater: (node: FileNode) => FileNode): FileNode[] => {
+    return nodes.map(node => {
+      if (node.path === path) return updater(node);
+      if (node.kind === 'directory' && node.children) {
+        return { ...node, children: updateTreeNode(node.children, path, updater) };
+      }
+      return node;
+    });
+  };
+
+  const findTreeNode = (nodes: FileNode[], path: string): FileNode | null => {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.kind === 'directory' && node.children) {
+        const found = findTreeNode(node.children, path);
+        if (found) return found;
+      }
+    }
+    return null;
   };
 
   useEffect(() => {
@@ -287,12 +309,31 @@ export default function App() {
     }
   };
 
-  const toggleDir = (path: string) => {
+  const loadDirChildren = async (path: string) => {
+    const node = findTreeNode(fileTree, path);
+    if (!node || node.kind !== 'directory' || node.isLoaded || node.isLoading) return;
+
+    setFileTree(prev => updateTreeNode(prev, path, current => ({ ...current, isLoading: true })));
+    const children = await scanDir(path);
+    setFileTree(prev => updateTreeNode(prev, path, current => ({
+      ...current,
+      children,
+      isLoaded: true,
+      isLoading: false,
+    })));
+  };
+
+  const toggleDir = (node: FileNode) => {
+    const path = node.path;
+    const willExpand = !expandedDirs.has(path);
+
     setExpandedDirs(prev => {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path); else next.add(path);
       return next;
     });
+
+    if (willExpand) void loadDirChildren(path);
   };
 
   const enterEditMode = () => {
@@ -422,9 +463,10 @@ export default function App() {
       if (node.kind === 'directory') {
         return (
           <div key={node.path}>
-            <div className="tree-item" style={{ paddingLeft: `${level * 12 + 12}px` }} onClick={() => toggleDir(node.path)}>
+            <div className="tree-item" style={{ paddingLeft: `${level * 12 + 12}px` }} onClick={() => toggleDir(node)}>
               {isExpanded ? <ChevronDown /> : <ChevronRight />}
               <span className="tree-item-label font-medium">{node.name}</span>
+              {node.isLoading && <span className="file-ext">...</span>}
             </div>
             {isExpanded && node.children && renderTree(node.children, level + 1)}
           </div>
