@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
-import { Search, FolderOpen, FileText, ChevronRight, ChevronDown, Sparkles, Minus, Square, X, Edit3, Save, RotateCcw, Plus } from 'lucide-react';
+import { Search, FolderOpen, FileText, ChevronRight, ChevronDown, Sparkles, Minus, Square, X, Edit3, Save, RotateCcw, Plus, Trash2, FolderPlus, FilePlus } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
-import { readDir, readFile, readTextFile, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { readDir, readFile, readTextFile, writeFile, writeTextFile, mkdir, remove } from '@tauri-apps/plugin-fs';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -122,6 +122,8 @@ export default function App() {
   const [sheetNames, setSheetNames] = useState<string[]>([]);
   const [activeSheet, setActiveSheet] = useState('');
   const [gridData, setGridData] = useState<GridValue[][]>(emptyGrid);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const hasUnsavedChanges = isEditing && editorContent !== markdownContent;
   const isSheetDirty = currentFile?.fileType === 'xlsx' || currentFile?.fileType === 'csv';
@@ -280,6 +282,90 @@ export default function App() {
     }
     return null;
   };
+
+  const handleNewFile = async () => {
+    if (!rootDir) return;
+    const name = window.prompt("Enter new file name (e.g. note.md):");
+    if (!name) return;
+    let fileName = name.trim();
+    if (!fileName) return;
+    if (!fileName.includes('.')) {
+      fileName += '.md';
+    }
+    const path = `${rootDir}/${fileName}`;
+    try {
+      await writeTextFile(path, "");
+      setFileTree(await scanDir(rootDir));
+      await openFile(path);
+    } catch (err) {
+      alert(`Failed to create file: ${err}`);
+    }
+  };
+
+  const handleNewFolder = async () => {
+    if (!rootDir) return;
+    const name = window.prompt("Enter new folder name:");
+    if (!name) return;
+    const folderName = name.trim();
+    if (!folderName) return;
+    const path = `${rootDir}/${folderName}`;
+    try {
+      await mkdir(path, { recursive: true });
+      setFileTree(await scanDir(rootDir));
+    } catch (err) {
+      alert(`Failed to create folder: ${err}`);
+    }
+  };
+
+  const handleDelete = async (node: FileNode) => {
+    const ok = window.confirm(`Are you sure you want to delete ${node.name}? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      await remove(node.path, { recursive: true });
+      if (currentFile?.path === node.path) {
+        setCurrentFile(null);
+        resetDocumentState();
+      }
+      if (rootDir) {
+        setFileTree(await scanDir(rootDir));
+      }
+    } catch (err) {
+      alert(`Failed to delete item: ${err}`);
+    }
+  };
+
+  const saveMarkdownSilently = async () => {
+    if (!currentFile || editorContent === markdownContent) return;
+    try {
+      setSaveStatus('Auto-saving...');
+      await writeTextFile(currentFile.path, editorContent);
+      setMarkdownContent(editorContent);
+      setSaveStatus('Auto-saved');
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (err) {
+      setSaveStatus('Auto-save failed');
+    }
+  };
+
+  useEffect(() => {
+    if (!autoSaveEnabled || !isEditing || !currentFile || currentFile.fileType !== 'markdown') return;
+
+    if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      void saveMarkdownSilently();
+    }, 30000); // 30 seconds
+
+    return () => {
+      if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+    };
+  }, [editorContent, autoSaveEnabled, isEditing]);
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+    };
+  }, [currentFile, isEditing]);
 
   useEffect(() => {
     const unlisten = listen<string>('document-file-opened', (event) => {
@@ -463,10 +549,17 @@ export default function App() {
       if (node.kind === 'directory') {
         return (
           <div key={node.path}>
-            <div className="tree-item" style={{ paddingLeft: `${level * 12 + 12}px` }} onClick={() => toggleDir(node)}>
+            <div className="tree-item dir-item" style={{ paddingLeft: `${level * 12 + 12}px` }} onClick={() => toggleDir(node)}>
               {isExpanded ? <ChevronDown /> : <ChevronRight />}
               <span className="tree-item-label font-medium">{node.name}</span>
               {node.isLoading && <span className="file-ext">...</span>}
+              <button
+                className="tree-item-delete"
+                onClick={(e) => { e.stopPropagation(); void handleDelete(node); }}
+                title="Delete directory"
+              >
+                <Trash2 size={12} />
+              </button>
             </div>
             {isExpanded && node.children && renderTree(node.children, level + 1)}
           </div>
@@ -476,16 +569,38 @@ export default function App() {
       return (
         <div
           key={node.path}
-          className={`tree-item ${isSelected ? 'active' : ''}`}
+          className={`tree-item file-item ${isSelected ? 'active' : ''}`}
           style={{ paddingLeft: `${level * 12 + 28}px` }}
           onClick={() => openFile(node.path)}
         >
           <FileText />
           <span className="tree-item-label">{node.name.replace(/\.(md|pdf|docx|xlsx|csv)$/i, '')}</span>
           <span className="file-ext">{getExtension(node.name).slice(1)}</span>
+          <button
+            className="tree-item-delete"
+            onClick={(e) => { e.stopPropagation(); void handleDelete(node); }}
+            title="Delete file"
+          >
+            <Trash2 size={12} />
+          </button>
         </div>
       );
     });
+  };
+
+  const findFilePathByName = (nodes: FileNode[], targetName: string): string | null => {
+    for (const node of nodes) {
+      if (node.kind === 'file') {
+        const nameWithoutExt = node.name.replace(/\.[^/.]+$/, "");
+        if (nameWithoutExt.toLowerCase() === targetName.toLowerCase()) {
+          return node.path;
+        }
+      } else if (node.kind === 'directory' && node.children) {
+        const path = findFilePathByName(node.children, targetName);
+        if (path) return path;
+      }
+    }
+    return null;
   };
 
   const renderMarkdownPreview = () => (
@@ -501,7 +616,24 @@ export default function App() {
           })}
           components={{
             a: (props) => {
-              if (props.href?.startsWith('#wiki-')) return <span className="wiki-link">{props.children}</span>;
+              if (props.href?.startsWith('#wiki-')) {
+                const target = decodeURIComponent(props.href.slice(6));
+                return (
+                  <span
+                    className="wiki-link"
+                    onClick={() => {
+                      const path = findFilePathByName(fileTree, target);
+                      if (path) {
+                        void openFile(path);
+                      } else {
+                        alert(`AeroDoc: Target note "${target}.md" not found in current vault.`);
+                      }
+                    }}
+                  >
+                    {props.children}
+                  </span>
+                );
+              }
               return <a {...props} target="_blank" rel="noopener noreferrer" />;
             }
           }}
@@ -567,6 +699,11 @@ export default function App() {
               setEditorContent(event.target.value);
               setSaveStatus('');
             }}
+            onBlur={() => {
+              if (autoSaveEnabled && isEditing && currentFile && currentFile.fileType === 'markdown') {
+                void saveMarkdownSilently();
+              }
+            }}
             spellCheck={false}
           />
         </div>
@@ -625,9 +762,17 @@ export default function App() {
               <>
                 <div className="vault-header">
                   <span className="vault-name">{rootDir.split('/').pop() || 'Vault'}</span>
-                  <button onClick={handleOpenVault} className="vault-switch" title="Switch vault">
-                    <FolderOpen size={13} />
-                  </button>
+                  <div className="vault-actions">
+                    <button onClick={handleNewFile} className="vault-action-btn" title="New file">
+                      <FilePlus size={13} />
+                    </button>
+                    <button onClick={handleNewFolder} className="vault-action-btn" title="New folder">
+                      <FolderPlus size={13} />
+                    </button>
+                    <button onClick={handleOpenVault} className="vault-action-btn" title="Switch vault">
+                      <FolderOpen size={13} />
+                    </button>
+                  </div>
                 </div>
                 {renderTree(filteredTree)}
               </>
@@ -646,6 +791,16 @@ export default function App() {
                   {saveStatus && <span className={`save-status ${saveStatus.startsWith('Save failed') || saveStatus.startsWith('Load failed') ? 'error' : ''}`}>{saveStatus}</span>}
                 </div>
                 <div className="document-actions">
+                  {currentFile.fileType === 'markdown' && isEditing && (
+                    <label className="auto-save-toggle">
+                      <input
+                        type="checkbox"
+                        checked={autoSaveEnabled}
+                        onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+                      />
+                      <span>Auto-Save</span>
+                    </label>
+                  )}
                   {(currentFile.fileType === 'xlsx' || currentFile.fileType === 'csv') && (
                     <>
                       <button className="toolbar-btn" onClick={addRow} title="Add row"><Plus size={14} />Row</button>

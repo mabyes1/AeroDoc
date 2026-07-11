@@ -35,12 +35,20 @@ npx tauri build
 
 Use `npm run dev` for the Vite frontend only. Use `npx tauri dev` when testing filesystem access, file associations, drag-and-drop, or desktop behavior.
 
+## Installation & Setup
+
+For standard installation on Windows:
+- **One-click Installer Script**: Run `install.bat` (or `install.ps1` via PowerShell) to build, copy the program to your Local Programs directory, and automatically configure file associations (`.md`, `.pdf`, `.docx`, `.xlsx`, `.csv`) under `HKCU` (no admin privileges required).
+- **Standalone Setup EXE**: Run `npx tauri build` to compile a professional GUI installer wizard:
+  `src-tauri/target/release/bundle/nsis/AeroDoc_0.1.0_x64-setup.exe`
+
 ## Project Structure
 
 - `src/` - React application, document loading, editing, and UI.
 - `src-tauri/` - Tauri configuration, Rust commands, file association, and filesystem scope handling.
 - `public/` - static web assets.
 - `dist/` - generated frontend build output, not committed.
+- `install.ps1` / `install.bat` - custom Windows local script installer.
 
 ## License
 

@@ -681,3 +681,76 @@ body {
   cursor: pointer;
 }
 .wiki-link:hover { background: var(--accent-glow); }
+
+/* --- Vault & File Tree Action Actions --- */
+.vault-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vault-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 4px;
+}
+
+.vault-action-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.tree-item {
+  position: relative;
+}
+
+.tree-item-delete {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: auto;
+  padding: 2px;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.tree-item:hover .tree-item-delete {
+  display: flex;
+}
+
+.tree-item:hover .file-ext {
+  display: none; /* Hide extension on hover to make room for delete button */
+}
+
+.tree-item-delete:hover {
+  color: #ff7b72;
+  background: rgba(255, 123, 114, 0.15);
+}
+
+/* --- Auto Save Toggle --- */
+.auto-save-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  margin-right: 12px;
+}
+
+.auto-save-toggle input {
+  cursor: pointer;
+  accent-color: var(--accent);
+}

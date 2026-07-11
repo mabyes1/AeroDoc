@@ -41,6 +41,13 @@
         "description": "AeroDoc document",
         "role": "Viewer"
       }
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": true,
+        "compression": "lzma"
+      }
+    }
   }
 }
