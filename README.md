@@ -6,10 +6,24 @@ AeroDoc is a lightweight desktop document app for quick reading and simple edits
 
 - Browse a local folder and its subfolders.
 - Read and edit Markdown files with GitHub-flavored Markdown preview.
+- Use a live split editor/preview layout for Markdown.
 - Read PDF files through the built-in viewer.
 - Preview DOCX files and save simplified plain-text DOCX output.
-- Open XLSX and CSV files in a simple editable grid.
+- Open XLSX and CSV files in an editable, virtualized grid.
+- Drag across spreadsheet cells to select a rectangular range, then copy or paste tabular data with standard shortcuts.
+- Collapse or resize the workspace sidebar and quickly reopen the most recent folder.
 - Work locally; files stay on your machine unless you sync them yourself.
+
+## Keyboard Shortcuts
+
+- `Ctrl+O` - open a folder.
+- `Ctrl+K` - focus file search.
+- `Ctrl+B` - show or hide the sidebar.
+- `Ctrl+E` - enter or leave text editing for Markdown and DOCX.
+- `Ctrl+S` - save the current document.
+- `Ctrl+C` / `Ctrl+V` - copy or paste the selected spreadsheet range.
+
+Spreadsheet rendering is virtualized, so AeroDoc only mounts cells near the visible viewport. DOCX, XLSX, CSV, and export libraries are also loaded on demand instead of being included in the initial application bundle.
 
 ## Current Limitations
 
