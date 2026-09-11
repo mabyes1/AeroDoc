@@ -6,7 +6,7 @@ import { CommandPalette, GlobalShortcuts } from './components/CommandPalette';
 import { DocumentToolbar } from './components/DocumentToolbar';
 import { DocumentCanvas, StatusBar } from './components/DocumentCanvas';
 import { WelcomeShell, WorkspaceEmpty, AnnotationsPanel } from './components/Welcome';
-import { AssociationPicker } from './components/AssociationPicker';
+import { SettingsDialog } from './components/SettingsDialog';
 import './index.css';
 
 function AppShell() {
@@ -17,7 +17,7 @@ function AppShell() {
       <TitleBar />
       <GlobalShortcuts />
       <CommandPalette />
-      <AssociationPicker />
+      <SettingsDialog />
       <div className="app-body">
         {!sidebarCollapsed && <SidebarConnected />}
         <main className="content-pane">

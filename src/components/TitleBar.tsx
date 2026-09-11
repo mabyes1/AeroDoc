@@ -1,6 +1,7 @@
-import { Minus, Square, X, Sparkles, PanelLeftClose, PanelLeftOpen, Globe } from 'lucide-react';
+import { Minus, Square, X, Sparkles, PanelLeftClose, PanelLeftOpen, Globe, Settings } from 'lucide-react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useAppStore } from '../state/store';
+import { openSettings } from './SettingsDialog';
 import type { Theme, Locale } from '../types';
 
 const appWindow = getCurrentWindow();
@@ -68,6 +69,14 @@ export function TitleBar() {
         >
           <Globe size={13} />
           <span>{locale === 'zh-TW' ? '中' : 'EN'}</span>
+        </button>
+        <button
+          className="locale-toggle"
+          onClick={openSettings}
+          title={t('settings')}
+          aria-label={t('settings')}
+        >
+          <Settings size={13} />
         </button>
         <div className="window-controls">
           <button className="win-btn" onClick={() => appWindow.minimize()} aria-label="Minimize">

@@ -2335,53 +2335,167 @@ kbd {
   box-shadow: var(--glass-inner), 0 0 0 3px var(--accent-glow);
 }
 
-/* --- Association picker --- */
-.assoc-panel {
-  padding: 18px 18px 14px;
-  gap: 14px;
-}
-.assoc-header {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  color: var(--text-main);
-}
-.assoc-header p {
-  margin-top: 4px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-.assoc-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-.assoc-item {
+/* --- Settings dialog (solid, readable — not ghost glass) --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.settings-dialog {
+  width: min(480px, 100%);
+  max-height: min(640px, 90vh);
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #16181f;
+  color: #e8eaed;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  /* intentionally opaque — settings must stay readable */
+}
+
+[data-theme='sakura'] .settings-dialog {
+  background: #fffafc;
+  color: #3d3038;
+  border-color: rgba(219, 112, 147, 0.18);
+  box-shadow: 0 24px 64px rgba(120, 60, 80, 0.2);
+}
+
+[data-theme='claude'] .settings-dialog {
+  background: #1c1815;
+  border-color: rgba(255, 235, 220, 0.12);
+}
+
+[data-theme='dark'] .settings-dialog {
+  background: #1a1a1e;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='sakura'] .settings-header {
+  border-bottom-color: rgba(219, 112, 147, 0.12);
+}
+
+.settings-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.settings-close {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.65;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.settings-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
+
+.settings-section {
+  padding: 16px;
+}
+
+.settings-section-title {
+  display: flex;
   gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.settings-section-title p {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.assoc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assoc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
-  background: var(--bg-glass-soft);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
   user-select: none;
 }
-.assoc-item:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-border)); }
-.assoc-ext {
+
+[data-theme='sakura'] .assoc-row {
+  border-color: rgba(219, 112, 147, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.assoc-row:hover {
+  border-color: rgba(138, 180, 248, 0.35);
+  background: rgba(138, 180, 248, 0.08);
+}
+
+.assoc-row input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
+.assoc-row .assoc-ext {
   font-family: "Cascadia Code", Consolas, monospace;
   font-size: 0.78rem;
   color: var(--accent);
-  min-width: 48px;
+  min-width: 52px;
 }
-.assoc-label { font-size: 0.82rem; color: var(--text-main); }
-.assoc-message { font-size: 0.78rem; color: var(--accent); }
-.assoc-actions {
+
+.assoc-row .assoc-label {
+  font-size: 0.84rem;
+}
+
+.settings-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 12px;
+  margin-top: 16px;
 }
+
+.settings-message {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.settings-apply {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 650;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.settings-apply:disabled { opacity: 0.55; cursor: default; }
+.settings-apply:not(:disabled):hover { background: var(--accent-hover); }
 
 /* --- Formula bar (Office-style) --- */
 .formula-bar {

@@ -103,11 +103,11 @@ export function CommandPalette() {
       },
       {
         id: 'file-associations',
-        title: t('associations'),
+        title: t('settings'),
+        subtitle: t('associations'),
         category: 'System',
         run: () => {
-          localStorage.removeItem('aerodoc-associations-seen');
-          window.dispatchEvent(new CustomEvent('aerodoc-open-associations'));
+          window.dispatchEvent(new CustomEvent('aerodoc-open-settings'));
         },
       },
     ];

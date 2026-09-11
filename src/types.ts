@@ -173,6 +173,7 @@ export type TranslationKey =
   | 'associationsApply'
   | 'associationsSkip'
   | 'associationsDone'
+  | 'settings'
   | 'noPreviewText'
   | 'simplifiedDocxWarn'
   | 'dragSelectCells'
