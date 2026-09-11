@@ -2335,6 +2335,54 @@ kbd {
   box-shadow: var(--glass-inner), 0 0 0 3px var(--accent-glow);
 }
 
+/* --- Association picker --- */
+.assoc-panel {
+  padding: 18px 18px 14px;
+  gap: 14px;
+}
+.assoc-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--text-main);
+}
+.assoc-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.assoc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.assoc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-glass-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.assoc-item:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-border)); }
+.assoc-ext {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--accent);
+  min-width: 48px;
+}
+.assoc-label { font-size: 0.82rem; color: var(--text-main); }
+.assoc-message { font-size: 0.78rem; color: var(--accent); }
+.assoc-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 /* --- Formula bar (Office-style) --- */
 .formula-bar {
   display: flex;

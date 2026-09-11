@@ -1,6 +1,6 @@
 [package]
 name = "aerodoc"
-version = "0.1.0"
+version = "0.3.0"
 description = "Local-first desktop document reader and lightweight editor."
 authors = ["AeroDoc contributors"]
 license = "MIT"
@@ -25,3 +25,6 @@ tauri = { version = "2.0.0-rc.17", features = [] }
 tauri-plugin-log = "2.0.0-rc"
 tauri-plugin-dialog = "2.0.0-rc"
 tauri-plugin-fs = "2.0.0-rc"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"

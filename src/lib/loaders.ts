@@ -29,6 +29,7 @@ export async function loadDocx(file: CurrentFile) {
   return {
     docxHtml: cleanHtml || '<p>No previewable text found.</p>',
     plainText: raw.value,
+    originalBytes: bytes,
   };
 }
 

@@ -55,6 +55,8 @@ export interface DocumentTab {
   pdfUrl: string | null;
   docxHtml: string;
   plainText: string;
+  /** Original DOCX package bytes for non-destructive save. */
+  originalBytes: Uint8Array | null;
   workbook: unknown | null;
   sheetNames: string[];
   activeSheet: string;
@@ -164,6 +166,13 @@ export type TranslationKey =
   | 'pdf.passwordUnlock'
   | 'pdf.wrongPassword'
   | 'formulaPlaceholder'
+  | 'savedDocxPreserved'
+  | 'savedDocxBak'
+  | 'associations'
+  | 'associationsDesc'
+  | 'associationsApply'
+  | 'associationsSkip'
+  | 'associationsDone'
   | 'noPreviewText'
   | 'simplifiedDocxWarn'
   | 'dragSelectCells'

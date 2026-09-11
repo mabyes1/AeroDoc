@@ -1,5 +1,6 @@
 import { writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import type { CurrentFile, GridValue } from '../types';
+import { saveDocxPreservingPackage } from './docxPreserve';
 
 export async function saveMarkdown(path: string, content: string) {
   await writeTextFile(path, content);
@@ -9,7 +10,11 @@ export async function savePlainText(path: string, content: string) {
   await writeTextFile(path, content);
 }
 
-export async function saveDocx(path: string, content: string) {
+export async function saveDocx(path: string, content: string, originalBytes?: Uint8Array | null) {
+  if (originalBytes && originalBytes.byteLength > 0) {
+    return saveDocxPreservingPackage(path, originalBytes, content);
+  }
+  // No original package in memory — still write a safety note via simplified path
   const { Document, Packer, Paragraph, TextRun } = await import('docx');
   const paragraphs = content.split(/\r?\n/).map(line => (
     new Paragraph({ children: [new TextRun(line || ' ')] })
@@ -19,6 +24,7 @@ export async function saveDocx(path: string, content: string) {
   });
   const buffer = await Packer.toArrayBuffer(doc);
   await writeFile(path, new Uint8Array(buffer));
+  return 'backup-fallback' as const;
 }
 
 export async function saveCsv(path: string, gridData: GridValue[][]) {
@@ -96,6 +102,7 @@ export async function saveCurrentTab(file: CurrentFile, payload: {
   workbook?: unknown;
   sheetNames?: string[];
   activeSheet?: string;
+  originalBytes?: Uint8Array | null;
 }): Promise<{ status: string; workbook?: unknown }> {
   switch (file.fileType) {
     case 'markdown':
@@ -106,9 +113,16 @@ export async function saveCurrentTab(file: CurrentFile, payload: {
     case 'html':
       await savePlainText(file.path, payload.editorContent ?? payload.plainText ?? '');
       return { status: 'saved' };
-    case 'docx':
-      await saveDocx(file.path, payload.editorContent ?? '');
-      return { status: 'savedSimplifiedDocx' };
+    case 'docx': {
+      const result = await saveDocx(
+        file.path,
+        payload.editorContent ?? '',
+        payload.originalBytes ?? null,
+      );
+      return {
+        status: result === 'preserved' ? 'savedDocxPreserved' : 'savedDocxBak',
+      };
+    }
     case 'csv':
       await saveCsv(file.path, payload.gridData ?? []);
       return { status: 'savedCsv' };

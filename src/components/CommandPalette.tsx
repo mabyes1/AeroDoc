@@ -101,6 +101,15 @@ export function CommandPalette() {
         category: 'View',
         run: () => setLocale('en-US'),
       },
+      {
+        id: 'file-associations',
+        title: t('associations'),
+        category: 'System',
+        run: () => {
+          localStorage.removeItem('aerodoc-associations-seen');
+          window.dispatchEvent(new CustomEvent('aerodoc-open-associations'));
+        },
+      },
     ];
 
     if (activeTab) {

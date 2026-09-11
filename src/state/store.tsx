@@ -48,6 +48,7 @@ const createEmptyTabState = (file: CurrentFile): DocumentTab => ({
   pdfUrl: null,
   docxHtml: '',
   plainText: '',
+  originalBytes: null,
   workbook: null,
   sheetNames: [],
   activeSheet: '',
@@ -321,6 +322,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             plainText: loaded.plainText,
             markdownContent: loaded.plainText,
             editorContent: loaded.plainText,
+            originalBytes: loaded.originalBytes,
           };
         } else if (loaded.kind === 'text') {
           next = {
@@ -626,13 +628,19 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         workbook: activeTab.workbook,
         sheetNames: activeTab.sheetNames,
         activeSheet: activeTab.activeSheet,
+        originalBytes: activeTab.originalBytes,
       });
 
       updateActiveTab({
         markdownContent: activeTab.editorContent,
         isEditing: false,
         sheetDirty: false,
-        saveStatus: t('saved'),
+        saveStatus:
+          result.status === 'savedDocxPreserved'
+            ? t('savedDocxPreserved')
+            : result.status === 'savedDocxBak'
+              ? t('savedDocxBak')
+              : t('saved'),
         ...(result.workbook ? { workbook: result.workbook } : {}),
       });
     } catch (err) {

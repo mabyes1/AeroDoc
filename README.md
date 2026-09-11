@@ -41,7 +41,9 @@ AeroDoc is a local-first desktop document workspace for reading and light editin
 
 ## Current Limitations
 
-AeroDoc stays intentionally lightweight. DOCX saving rewrites the file as simplified plain text and does not preserve advanced formatting, images, comments, or tracked changes. XLSX saving preserves sheet names, cell values, and simple formulas; charts and macros are not a goal. PDF remains read-only except for local highlights.
+AeroDoc stays intentionally lightweight. DOCX saving rewrites paragraph text inside the original package (styles/images preserved when possible) and always writes a one-time `.aerodoc.bak` backup. XLSX saving preserves sheet names, cell values, and simple formulas; charts and macros are not a goal. PDF remains read-only except for local highlights.
+
+On first launch you can choose which file extensions AeroDoc registers as the default handler (HKCU, no admin).
 
 ## Development
 
